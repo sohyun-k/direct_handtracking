@@ -2,7 +2,7 @@
 
 #ifndef TARGETNAME
 #pragma message ("TARGETNAME undefined, using UberTest")
-#define TARGETNAME UberTest
+#define TARGETNAME BasicTest
 #endif
 
 /* Preprocessor acrobatics to include the app header based on the target */

@@ -112,18 +112,18 @@ public:
 };
 
 void BackgroundUpdaterThread::threadedFunction() {
-	uint64_t lastDepthTimestamp = 0;
+//	uint64_t lastDepthTimestamp = 0;
 	int curDepthFrame = 0;
 	fps.fps = 30; // estimated fps
 
 	while(isThreadRunning()) {
-		// Check if the depth frame is new
-		uint64_t curDepthTimestamp = depthStream.getFrameTimestamp();
-		if(lastDepthTimestamp == curDepthTimestamp) {
+		// Check if the depth frame is new //changed
+//		uint64_t curDepthTimestamp = depthStream.getFrameTimestamp();
+		if(depthStream.isFrameNew()) {
 			ofSleepMillis(5);
 			continue;
 		}
-		lastDepthTimestamp = curDepthTimestamp;
+//		lastDepthTimestamp = curDepthTimestamp;
 		curDepthFrame++;
 		fps.update();
 
@@ -133,9 +133,11 @@ void BackgroundUpdaterThread::threadedFunction() {
 			curFrame++; // manual capture mode
 
 		// Update background pixels based on new depth data
-		auto &depthPixels = depthStream.getPixelsRef();
-		uint16_t *depthpx = depthPixels.getPixels();
-		uint32_t *debugpx = (uint32_t *)backgroundStateDebug.getPixels();
+		/*changed*/
+//		auto &depthPixels = depthStream.getPixelsRef();
+//		uint16_t *depthpx = depthPixels.getPixels();
+		uint16_t *depthpx = depthStream.getShortPixelsRef().getPixels();
+		uint32_t *debugpx = (uint32_t *)backgroundStateDebug.getPixelsRef().getPixels();
 		float *means = bgmean.getPixels();
 		float *stdevs = bgstdev.getPixels();
 		const int n = width * height;
@@ -159,7 +161,8 @@ void BackgroundUpdaterThread::drawDebug(float x, float y) {
 	if(!backgroundStateDebug.isAllocated()) {
 		backgroundStateDebug.allocate(width, height, OF_IMAGE_COLOR_ALPHA);
 	}
-	backgroundStateDebug.reloadTexture();
+	//backgroundStateDebug.reloadTexture();
+	backgroundStateDebug.update();
 	backgroundStateDebug.draw(x, y);
 	drawText("Background", x, y, HAlign::left, VAlign::top);
 }

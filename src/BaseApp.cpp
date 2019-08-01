@@ -54,7 +54,7 @@ void BaseApp::setupKinect() {
 
 	/* Wait until the Kinect is running, then do the rest of the setup. */
 	uint64_t start = ofGetElapsedTimeMillis();
-	while(depthStream.getPixelsRef().getWidth() == 0 || depthStream.getPixelsRef().getHeight() == 0) {
+	while(depthStream.getShortPixelsRef().getWidth() == 0 || depthStream.getShortPixelsRef().getHeight() == 0) {
 		if(ofGetElapsedTimeMillis() - start > 5000) {
 			throw std::runtime_error("Kinect failed to start in time!");
 		}
@@ -78,7 +78,7 @@ ofPoint BaseApp::getWorldPoint(const ofVec2f &depthPos, bool live) {
 			int depth;
 			int index = (int)dpt.Y * depthStream.getWidth() + (int)dpt.X;
 			if(live) {
-				depth = depthStream.getPixelsRef().getPixels()[index]; // current (finger) depth
+				depth = depthStream.getShortPixelsRef().getPixels()[index]; // current (finger) depth
 			} else {
 				depth = bgthread->getBackgroundMean().getPixels()[index]; // stable (background) depth
 			}

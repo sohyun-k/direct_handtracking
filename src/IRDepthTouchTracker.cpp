@@ -57,13 +57,13 @@ const float touchz_exit = 2.5; // above this avg. z, a touch is considered inact
 void IRDepthTouchTracker::buildEdgeImage() {
 	const int n = w * h;
 	
-	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixels();
-	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixels();
+	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixelsRef().getPixels();
+	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixelsRef().getPixels();
 	fill_n(edgePx, n, 0);
 
 	/* Build IR canny map */
 	uint16_t *irPx = irStream.getPixelsRef().getPixels();
-	uint8_t *ircannyPx = irCanny.getPixels();
+	uint8_t *ircannyPx = irCanny.getPixels().getPixels();
 	for(int i=0; i<n; i++) {
 		ircannyPx[i] = irPx[i] / 64;
 	}
@@ -137,7 +137,7 @@ void IRDepthTouchTracker::fillIrCannyHoles() {
 	   160 = fill candidate
 	   128 = filled significant canny
 	   0 = no canny */
-	uint8_t *ircannypx = irCanny.getPixels();
+	uint8_t *ircannypx = irCanny.getPixels().getPixels();
 
 	/* Find significant pixels and fill outwards */
 	queue<int> queue;
@@ -209,8 +209,8 @@ void IRDepthTouchTracker::fillIrCannyHoles() {
 void IRDepthTouchTracker::buildDiffImage() {
 	const int n = w * h;
 
-	uint16_t *depthPx = depthStream.getPixelsRef().getPixels();
-	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixels();
+	uint16_t *depthPx = depthStream.getShortPixelsRef().getPixels();
+	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixelsRef().getPixels();
 
 	const float *bgmean = background.getBackgroundMean().getPixels();
 	const float *bgstdev = background.getBackgroundStdev().getPixels();
@@ -238,7 +238,7 @@ void IRDepthTouchTracker::buildDiffImage() {
 
 #pragma region Flood Filling
 void IRDepthTouchTracker::rejectBlob(const vector<unsigned> &blob, int reason) {
-	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixels();
+	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixelsRef().getPixels();
 
 	for(auto i : blob) {
 		blobPx[i & 0xffffff] |= BLOB_REJECTED | ((reason & 0x3f) << 18);
@@ -260,8 +260,8 @@ vector<IRDepthArm> IRDepthTouchTracker::detectTouches() {
 	nextBlobId = 1;
 
 	vector<IRDepthArm> arms;
-	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixels();
-	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixels();
+	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixelsRef().getPixels();
+	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixelsRef().getPixels();
 
 	fill_n(blobPx, n, 0);
 
@@ -282,8 +282,8 @@ vector<IRDepthArm> IRDepthTouchTracker::detectTouches() {
 bool IRDepthTouchTracker::floodArm(IRDepthArm &arm, unsigned idx) {
 	const int n = w * h;
 
-	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixels();
-	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixels();
+	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixelsRef().getPixels();
+	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixelsRef().getPixels();
 
 	vector<unsigned> q, q2;
 	int qtail = 0;
@@ -353,9 +353,9 @@ bool IRDepthTouchTracker::floodArm(IRDepthArm &arm, unsigned idx) {
 bool IRDepthTouchTracker::floodHand(IRDepthHand &hand, unsigned idx) {
 	const int n = w * h;
 
-	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixels();
-	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixels();
-	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixels();
+	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixelsRef().getPixels();
+	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixelsRef().getPixels();
+	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixelsRef().getPixels();
 
 	vector<unsigned> q, q2;
 	int qtail = 0;
@@ -427,9 +427,9 @@ bool IRDepthTouchTracker::floodHand(IRDepthHand &hand, unsigned idx) {
 bool IRDepthTouchTracker::floodFinger(IRDepthFinger &finger, unsigned idx) {
 	const int n = w * h;
 
-	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixels();
-	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixels();
-	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixels();
+	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixelsRef().getPixels();
+	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixelsRef().getPixels();
+	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixelsRef().getPixels();
 
 	vector<unsigned> q, q2;
 	vector<unsigned> roots; // pixels next to mid/high conf pixels
@@ -529,9 +529,9 @@ bool IRDepthTouchTracker::floodFinger(IRDepthFinger &finger, unsigned idx) {
 }
 
 void IRDepthTouchTracker::refloodFinger(const vector<unsigned> &blob, vector<unsigned> &roots) {
-	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixels();
-	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixels();
-	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixels();
+	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixelsRef().getPixels();
+	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixelsRef().getPixels();
+	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixelsRef().getPixels();
 
 	set<unsigned> unseen;
 	for(auto i : blob)
@@ -562,8 +562,8 @@ void IRDepthTouchTracker::refloodFinger(const vector<unsigned> &blob, vector<uns
 }
 
 bool IRDepthTouchTracker::computeFingerMetrics(IRDepthFinger &finger, vector<unsigned> &px) {
-	uint16_t *depthPx = depthStream.getPixelsRef().getPixels();
-	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixels();
+	uint16_t *depthPx = depthStream.getShortPixelsRef().getPixels();
+	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixelsRef().getPixels();
 
 	const float *bgmean = background.getBackgroundMean().getPixels();
 
@@ -613,9 +613,9 @@ bool IRDepthTouchTracker::floodTip(IRDepthTip &tip, unsigned idx) {
 	
 	unsigned initial_dist = idx >> 24;
 
-	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixels();
-	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixels();
-	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixels();
+	uint32_t *diffPx = (uint32_t *)diffIm[front].getPixelsRef().getPixels();
+	uint32_t *edgePx = (uint32_t *)edgeIm[front].getPixelsRef().getPixels();
+	uint32_t *blobPx = (uint32_t *)blobIm[front].getPixelsRef().getPixels();
 
 	vector<unsigned> q;
 	int qtail = 0;
@@ -761,12 +761,12 @@ void IRDepthTouchTracker::threadedFunction() {
 
 	while(isThreadRunning()) {
 		// Check if the depth frame is new
-		uint64_t curDepthTimestamp = depthStream.getFrameTimestamp();
-		if(lastDepthTimestamp == curDepthTimestamp) {
+//		uint64_t curDepthTimestamp = depthStream.getFrameTimestamp();
+		if(depthStream.isFrameNew()) {
 			ofSleepMillis(5);
 			continue;
 		}
-		lastDepthTimestamp = curDepthTimestamp;
+//		lastDepthTimestamp = curDepthTimestamp;
 		curDepthFrame++;
 		fps.update();
 
@@ -804,9 +804,9 @@ void IRDepthTouchTracker::drawDebug(float x, float y) {
 
 	int back = !front;
 
-	diffIm[back].reloadTexture();
-	edgeIm[back].reloadTexture();
-	blobIm[back].reloadTexture();
+	diffIm[back].update();
+	edgeIm[back].update();
+	blobIm[back].update();
 
 	diffIm[back].draw(x, y);
 	edgeIm[back].draw(x, y+dh);

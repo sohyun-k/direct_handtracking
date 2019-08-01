@@ -1,6 +1,5 @@
 ofx3DModelLoader
+ofxKinect2
 ofxOpenCv
 ofxSvg
 ofxVectorGraphics
-ofxAwesomium
-ofxKinect2

@@ -72,26 +72,26 @@ void ofApp::handleTouches(const vector<FingerTouch> &newTouches) {
 
 void ofApp::updateDebug() {
 	/* Check if the frame is actually new */
-	uint64_t curDepthTimestamp = depthStream.getFrameTimestamp();
-	if(lastDepthTimestamp == curDepthTimestamp)
+//	uint64_t curDepthTimestamp = depthStream.getFrameTimestamp();
+	if(depthStream.isFrameNew())
 		return;
-	lastDepthTimestamp = curDepthTimestamp;
+//	lastDepthTimestamp = curDepthTimestamp;
 	curDepthFrame++;
 
 	/* Debugging */
-	auto &depthPixels = depthStream.getPixelsRef();
+	auto &depthPixels = depthStream.getShortPixelsRef();
 	uint16_t *depthpx = depthPixels.getPixels();
 	const int dw = depthPixels.getWidth();
 	const int dh = depthPixels.getHeight();
 
-	uint8_t *depthvizpx = depthviz.getPixels();
+	uint8_t *depthvizpx = depthviz.getPixelsRef().getPixels();
 
 	/* Convert depth data for visualization purposes */
 	for(int i=0; i<dw*dh; i++) {
 		depthvizpx[i] = depthpx[i];
 	}
 
-	depthviz.reloadTexture();
+	depthviz.update();
 }
 
 //--------------------------------------------------------------
